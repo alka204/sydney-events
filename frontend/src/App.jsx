@@ -27,13 +27,19 @@ function App() {
   }, []);
 
   // Logout function
-  const handleLogout = () => {
-    fetch("http://localhost:5000/logout", { credentials: "include" })
-      .then(() => {
-        setUser(null);
-        window.location.href = "/"; // reload homepage
-      })
-      .catch((err) => console.error("Logout failed:", err));
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/logout", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setUser(null); // 🔥 immediately updates UI
+      }
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   return (

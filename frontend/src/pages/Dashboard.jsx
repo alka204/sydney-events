@@ -19,9 +19,9 @@ function Dashboard() {
       })
       .then((data) => {
         if (!data.user) throw new Error("No user data");
-        setUser(data.user); // store user info if needed
+        setUser(data.user);
       })
-      .catch(() => navigate("/")); // redirect to homepage if not logged in
+      .catch(() => navigate("/"));
   }, [navigate]);
 
   // Fetch events
@@ -44,15 +44,13 @@ function Dashboard() {
           userEmail: user?.emails?.[0]?.value || "admin@example.com",
           importNotes: "Imported from dashboard",
         }),
-        credentials: "include", // include session cookie
+        credentials: "include",
       });
 
       const data = await res.json();
 
-      // Update events list
       setEvents((prev) => prev.map((e) => (e._id === id ? data.event : e)));
 
-      // Update preview panel if same event selected
       if (selectedEvent && selectedEvent._id === id) {
         setSelectedEvent(data.event);
       }
@@ -69,96 +67,128 @@ function Dashboard() {
     return d.toLocaleString();
   };
 
+  const total = events.length;
+  const imported = events.filter((e) => e.status === "imported").length;
+  const pending = events.filter((e) => e.status !== "imported").length;
+
   return (
-    <div className="p-6 flex gap-6">
-      {/* Left: Table */}
-      <div className="w-2/3">
-        <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+    <div className="min-h-screen bg-gray-100 p-6">
+      {/* Header */}
+      <h1 className="text-3xl font-bold text-blue-700 mb-6">Dashboard</h1>
 
-        <table className="w-full border">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border p-2">Title</th>
-              <th className="border p-2">City</th>
-              <th className="border p-2">Date</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => (
-              <tr
-                key={e._id}
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() => setSelectedEvent(e)}
-              >
-                <td className="border p-2">{e.title}</td>
-                <td className="border p-2">{e.city}</td>
-                <td className="border p-2">{formatDate(e.dateTime)}</td>
-
-                {/* Status badge */}
-                <td className="border p-2">
-                  <span
-                    className={`px-2 py-1 rounded text-white text-sm ${
-                      e.status === "new"
-                        ? "bg-green-500"
-                        : e.status === "updated"
-                          ? "bg-orange-500"
-                          : e.status === "inactive"
-                            ? "bg-red-500"
-                            : e.status === "imported"
-                              ? "bg-blue-600"
-                              : "bg-gray-500"
-                    }`}
-                  >
-                    {e.status}
-                  </span>
-                </td>
-
-                <td className="border p-2">
-                  <button
-                    disabled={e.status === "imported" || loading}
-                    className={`px-3 py-1 rounded text-white ${
-                      e.status === "imported"
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      importEvent(e._id);
-                    }}
-                  >
-                    {e.status === "imported" ? "Imported" : "Import"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-5 rounded-xl shadow border-l-4 border-blue-600">
+          <p className="text-gray-500">Total Events</p>
+          <p className="text-3xl font-bold text-blue-700">{total}</p>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow border-l-4 border-green-500">
+          <p className="text-gray-500">Imported</p>
+          <p className="text-3xl font-bold text-green-600">{imported}</p>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow border-l-4 border-orange-500">
+          <p className="text-gray-500">Pending</p>
+          <p className="text-3xl font-bold text-orange-600">{pending}</p>
+        </div>
       </div>
 
-      {/* Right: Preview */}
-      <div className="w-1/3 bg-white p-4 rounded shadow">
-        {selectedEvent ? (
-          <>
-            <h2 className="text-xl font-bold mb-2">{selectedEvent.title}</h2>
-            <p>
-              <b>Date:</b> {formatDate(selectedEvent.dateTime)}
-            </p>
-            <p>
-              <b>Venue:</b> {selectedEvent.venue}
-            </p>
-            <p>
-              <b>Description:</b> {selectedEvent.description}
-            </p>
-            <p>
-              <b>Status:</b>{" "}
-              <span className="font-semibold">{selectedEvent.status}</span>
-            </p>
-          </>
-        ) : (
-          <p>Select an event to preview</p>
-        )}
+      <div className="flex gap-6">
+        {/* Left: Table */}
+        <div className="w-2/3 bg-white rounded-xl shadow p-4">
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">
+            Events List
+          </h2>
+
+          <table className="w-full text-sm">
+            <thead className="bg-blue-50 text-blue-700">
+              <tr>
+                <th className="p-2 text-left">Title</th>
+                <th className="p-2 text-left">City</th>
+                <th className="p-2 text-left">Date</th>
+                <th className="p-2 text-left">Status</th>
+                <th className="p-2 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((e) => (
+                <tr
+                  key={e._id}
+                  className="border-b hover:bg-blue-50 cursor-pointer"
+                  onClick={() => setSelectedEvent(e)}
+                >
+                  <td className="p-2">{e.title}</td>
+                  <td className="p-2">{e.city}</td>
+                  <td className="p-2">{formatDate(e.dateTime)}</td>
+
+                  <td className="p-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-white text-xs ${
+                        e.status === "new"
+                          ? "bg-green-500"
+                          : e.status === "updated"
+                            ? "bg-orange-500"
+                            : e.status === "inactive"
+                              ? "bg-red-500"
+                              : e.status === "imported"
+                                ? "bg-blue-600"
+                                : "bg-gray-500"
+                      }`}
+                    >
+                      {e.status}
+                    </span>
+                  </td>
+
+                  <td className="p-2">
+                    <button
+                      disabled={e.status === "imported" || loading}
+                      className={`px-4 py-1 rounded-lg text-white text-sm ${
+                        e.status === "imported"
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      }`}
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        importEvent(e._id);
+                      }}
+                    >
+                      {e.status === "imported" ? "Imported" : "Import"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Right: Preview */}
+        <div className="w-1/3 bg-white p-5 rounded-xl shadow">
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">
+            Event Preview
+          </h2>
+
+          {selectedEvent ? (
+            <>
+              <h3 className="text-lg font-bold mb-2">{selectedEvent.title}</h3>
+              <p className="mb-1">
+                <b>Date:</b> {formatDate(selectedEvent.dateTime)}
+              </p>
+              <p className="mb-1">
+                <b>Venue:</b> {selectedEvent.venue}
+              </p>
+              <p className="mb-1">
+                <b>Description:</b> {selectedEvent.description}
+              </p>
+              <p className="mb-1">
+                <b>Status:</b>{" "}
+                <span className="font-semibold text-blue-700">
+                  {selectedEvent.status}
+                </span>
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-500">Select an event to preview</p>
+          )}
+        </div>
       </div>
     </div>
   );

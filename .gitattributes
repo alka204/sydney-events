@@ -1,0 +1,10 @@
+# Set default behavior for all files
+* text=auto
+
+# Explicitly declare text files you want normalized
+*.js text
+*.jsx text
+*.css text
+*.html text
+*.json text
+*.env text
